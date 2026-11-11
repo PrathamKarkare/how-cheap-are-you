@@ -1,0 +1,19 @@
+{
+  "name": "how-cheap-are-you",
+  "version": "1.0.0",
+  "description": "A Black Friday price-guessing party game for team meetings",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.22.3",
+    "socket.io": "^4.8.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

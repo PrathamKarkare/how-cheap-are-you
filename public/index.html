@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How Cheap Are You?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="wrap narrow">
+    <header>
+      <div class="tag">Black Friday Special</div>
+      <h1 class="logo">How <span class="hi">Cheap</span><br>Are You<span class="q">?</span></h1>
+    </header>
+
+    <!-- Join -->
+    <section id="join" class="panel phone-card stack" hidden>
+      <div>
+        <label for="code">Room code</label>
+        <input id="code" type="text" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="ABCD">
+      </div>
+      <div>
+        <label for="name">Your funny name</label>
+        <div class="row" style="flex-wrap:nowrap">
+          <input id="name" type="text" maxlength="24" autocomplete="off" placeholder="Captain Coupon">
+          <button id="randomName" class="btn" type="button" title="Give me a name">🎲</button>
+        </div>
+      </div>
+      <button id="joinBtn" class="btn primary big block" type="button">Join the sale</button>
+      <p id="joinError" class="error"></p>
+    </section>
+
+    <!-- Everything after joining -->
+    <section id="game" class="phone-card stack" hidden>
+      <div class="row spread">
+        <span class="chip" id="meName"></span>
+        <span class="chip"><span id="meScore">0</span> pts</span>
+      </div>
+      <div id="view" class="panel stack"></div>
+    </section>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/player.js"></script>
+</body>
+</html>
