@@ -9,9 +9,9 @@ Each of the 7 rounds shows an inside-joke item, players guess its price, and the
 
 There are 6 normal rounds and 1 bonus round. Each round lasts 30 seconds.
 
-1. The host's screen shows the item's picture and its **ceiling price**.
+1. The host's screen shows the item's picture. Each item has a **secret ceiling price** that nobody sees until the round is over.
 2. Players type a guess on their device. The host sees who has guessed, but not what they guessed.
-3. When the timer runs out (or the host clicks **Lock guesses & reveal**), all guesses are shown.
+3. When the timer runs out (or the host clicks **Lock guesses & reveal**), the ceiling and all guesses are revealed.
 4. The **highest guess that is not over the ceiling** gets **2 points**, and the second highest gets **1 point**. Guessing exactly the ceiling is fine. Anything over the ceiling is disqualified and scores 0. If two guesses are equal, the one sent first wins.
 5. The **bonus round** (round 7) has no ceiling, so the highest guess wins.
 6. The host shows the leaderboard, then starts the next round. After the bonus round there's a podium.

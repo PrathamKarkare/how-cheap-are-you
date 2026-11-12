@@ -103,10 +103,9 @@
     const r = s.round;
     const label = r.bonus ? `⭐ Bonus round` : `Round ${r.number} of ${r.total}`;
     if (s.phase === 'guessing') {
-      const rule = r.ceiling === null
+      const rule = !r.hasCeiling
         ? '<p style="margin:0"><b>No ceiling!</b> Highest guess wins.</p>'
-        : `<p style="margin:0">Ceiling <span class="price">${money(r.ceiling)}</span></p>
-           <p class="muted small" style="margin:0">Go as high as you dare. Over the ceiling and you're disqualified.</p>`;
+        : `<p class="muted small" style="margin:0">There's a <b>secret ceiling</b>. Go as high as you dare. Go over it and you're disqualified.</p>`;
       const header = `
         <div class="row spread"><span class="chip">${label}</span><span class="chip" id="timer" hidden></span></div>
         <img class="round-img" src="${r.image}" alt="">
@@ -117,7 +116,6 @@
           <div class="center stack">
             <div class="muted">Your guess is locked in</div>
             <div class="big-number">${money(s.myGuess)}</div>
-            ${r.ceiling !== null && s.myGuess > r.ceiling ? '<p class="over-warn">That\'s over the ceiling. You will be disqualified!</p>' : ''}
             <button id="change" class="btn" type="button">Change my guess</button>
           </div>`;
         $('change').onclick = () => { editing = r.number; render(); };
@@ -126,7 +124,6 @@
           <div>
             <label for="guess">Your guess (${esc(s.currency)})</label>
             <input id="guess" class="guess-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">
-            <p id="overWarn" class="over-warn"></p>
           </div>
           <button id="send" class="btn primary big block" type="button">Lock it in</button>
           <p id="guessError" class="error"></p>`;
@@ -141,10 +138,6 @@
         };
         $('send').onclick = send;
         $('guess').addEventListener('keydown', (e) => e.key === 'Enter' && send());
-        $('guess').addEventListener('input', () => {
-          const over = r.ceiling !== null && Number($('guess').value) > r.ceiling;
-          $('overWarn').textContent = over ? 'Careful! That is over the ceiling and will be disqualified.' : '';
-        });
         $('guess').focus();
       }
       if (s.remainingMs !== null) startTimer(Date.now() + s.remainingMs);
@@ -168,6 +161,7 @@
     view.innerHTML = `
       <div class="center stack">
         <span class="chip">${label}</span>
+        ${r.hasCeiling ? `<div class="muted">The secret ceiling was</div><div><span class="price" style="font-size:34px">${money(r.ceiling)}</span></div>` : ''}
         <p style="margin:0">${line}</p>
         <div class="points-pop">${won ? `+${won}` : '+0'}</div>
         <p class="muted" style="margin:0">${verdict}</p>

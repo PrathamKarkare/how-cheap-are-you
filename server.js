@@ -95,7 +95,9 @@ function publicRound(room) {
     bonus: isBonus(room.roundIndex),
     title: r.title || '',
     image: r.image,
-    ceiling: r.ceiling,
+    hasCeiling: r.ceiling !== null,
+    // The ceiling stays secret until guessing is over.
+    ceiling: room.phase === 'guessing' ? null : r.ceiling,
   };
 }
 

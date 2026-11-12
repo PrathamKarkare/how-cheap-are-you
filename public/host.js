@@ -379,7 +379,7 @@
             ${r.title ? `<div class="item-title" style="margin:0">${esc(r.title)}</div>` : ''}
             ${ceilingLine(r)}
             ${winner
-              ? `<div class="winner-line">🏆 <b>${esc(winner.name)}</b> went highest${r.ceiling === null ? '' : ' without going over'}</div><div><span class="price answer-reveal">${money(winner.amount)}</span></div>`
+              ? `<div class="winner-line">🏆 <b>${esc(winner.name)}</b> went highest${r.hasCeiling ? ' without going over' : ''}</div><div><span class="price answer-reveal">${money(winner.amount)}</span></div>`
               : `<div class="winner-line">${s.results.length ? '💥 Everyone went over the ceiling. Nobody scores!' : ''}</div>`}
             <ul class="results">${rows}</ul>
           </div>
@@ -441,9 +441,11 @@
   }
 
   function ceilingLine(r) {
-    return r.ceiling === null
-      ? '<div class="ceiling">No ceiling this time. <b>Highest guess wins.</b></div>'
-      : `<div class="ceiling">Ceiling <span class="price">${money(r.ceiling)}</span><div class="muted small" style="margin-top:6px">Go as high as you dare. Over the ceiling is disqualified.</div></div>`;
+    if (!r.hasCeiling) return '<div class="ceiling">No ceiling this time. <b>Highest guess wins.</b></div>';
+    if (r.ceiling === null) {
+      return '<div class="ceiling">🤫 There\'s a <b>secret ceiling</b>.<div class="muted small" style="margin-top:6px">Go as high as you dare. Go over it and you\'re disqualified.</div></div>';
+    }
+    return `<div class="ceiling">The secret ceiling was <span class="price">${money(r.ceiling)}</span></div>`;
   }
 
   function burst(n) {
