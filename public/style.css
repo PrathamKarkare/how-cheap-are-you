@@ -269,3 +269,9 @@ input:focus { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255, 225, 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+.results li.bust { opacity: 0.6; }
+.results li.bust .pos { color: var(--red); }
+.results .dq { color: var(--red); font-size: 13px; font-weight: 800; letter-spacing: 0.04em; margin-left: 6px; }
+.winner-line { font-size: 22px; }
+.over-warn { color: var(--red); font-weight: 700; min-height: 1.4em; margin: 6px 0 0; font-size: 14px; }

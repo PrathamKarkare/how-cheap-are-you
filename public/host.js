@@ -35,18 +35,30 @@
     },
   };
 
-  const blankRound = () => ({ image: '', title: '', ceiling: '', answer: '' });
-  let setup = { currency: '$', seconds: 45, rounds: Array.from({ length: ROUNDS }, blankRound) };
+  const BONUS = ROUNDS - 1; // round 7 is the bonus round, with no ceiling
+  const SETUP_KEY = 'setup-v2';
+  const blankRound = () => ({ image: '', title: '', ceiling: '' });
+  const DEFAULT_ROUNDS = [
+    { image: '/img/arrabbiata.svg', title: 'A plate of Arrabbiata in a normally priced restaurant', ceiling: '30' },
+    { image: '/img/concert-ticket.svg', title: 'A ticket to a Backstreet Boys concert', ceiling: '500' },
+    { image: '/img/private-jet.svg', title: 'A private jet', ceiling: '4000000' },
+    { image: '/img/rusty-bike.svg', title: "Emmanuelle's old rusty bike", ceiling: '30' },
+    { image: '/img/flight-ticket.svg', title: 'A round-trip flight between Saudi Arabia and Germany', ceiling: '2000' },
+    { image: '/img/video-game.svg', title: 'GTA V', ceiling: '200' },
+    { image: '/img/spy-date.svg', title: 'The tip you leave after a date with a Chinese spy in a fancy restaurant', ceiling: '' },
+  ];
+  const defaultSetup = () => ({ currency: '€', rounds: DEFAULT_ROUNDS.map((r) => ({ ...r })) });
+  let setup = defaultSetup();
 
   let saveTimer;
   function persist() {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => db.set('setup', setup), 300);
+    saveTimer = setTimeout(() => db.set(SETUP_KEY, setup), 300);
   }
 
   function normalise(data) {
     const rounds = Array.from({ length: ROUNDS }, (_, i) => ({ ...blankRound(), ...(data?.rounds?.[i] || {}) }));
-    return { currency: data?.currency || '$', seconds: data?.seconds ?? 45, rounds };
+    return { currency: data?.currency || '€', rounds };
   }
 
   // Shrink photos so a game with 7 phone pictures stays small and loads fast for everyone.
@@ -77,22 +89,22 @@
 
   function renderSetup() {
     $('currency').value = setup.currency;
-    $('seconds').value = setup.seconds;
     const cur = esc(setup.currency);
     $('slots').innerHTML = setup.rounds.map((r, i) => `
       <div class="panel slot" data-i="${i}">
-        <h3>Round ${i + 1}</h3>
+        <h3>${i === BONUS ? 'Bonus round ⭐' : `Round ${i + 1}`}</h3>
         <div class="drop ${r.image ? 'has' : ''}" tabindex="0" role="button" aria-label="Choose image for round ${i + 1}">
           ${r.image ? `<img src="${r.image}" alt="">` : '<span>Drop an image here<br>or click to choose</span>'}
         </div>
         <input type="file" accept="image/*" hidden>
         <div style="margin-top:10px">
-          <label>What is it? (optional)</label>
-          <input type="text" data-k="title" maxlength="80" value="${esc(r.title)}" placeholder="Dave's emotional support mug">
+          <label>What is it?</label>
+          <input type="text" data-k="title" maxlength="120" value="${esc(r.title)}" placeholder="Dave's emotional support mug">
         </div>
-        <div class="two" style="margin-top:10px">
-          <div><label>Ceiling (${cur})</label><input type="number" data-k="ceiling" min="0" step="0.01" value="${esc(r.ceiling)}" placeholder="100"></div>
-          <div><label>Most likely (${cur})</label><input type="number" data-k="answer" min="0" step="0.01" value="${esc(r.answer)}" placeholder="24.99"></div>
+        <div style="margin-top:10px">
+          ${i === BONUS
+            ? '<p class="muted small" style="margin:6px 0 0">No ceiling. The highest guess wins.</p>'
+            : `<label class="ceil-label">Ceiling price (${cur})</label><input type="number" data-k="ceiling" min="0" step="0.01" value="${esc(r.ceiling)}" placeholder="100">`}
         </div>
       </div>`).join('');
 
@@ -129,13 +141,14 @@
   $('currency').addEventListener('input', () => {
     setup.currency = $('currency').value || '$';
     persist();
-    document.querySelectorAll('.slot').forEach((s) => {
-      const labels = s.querySelectorAll('.two label');
-      labels[0].textContent = `Ceiling (${setup.currency})`;
-      labels[1].textContent = `Most likely (${setup.currency})`;
-    });
+    document.querySelectorAll('.ceil-label').forEach((l) => (l.textContent = `Ceiling price (${setup.currency})`));
   });
-  $('seconds').addEventListener('input', () => { setup.seconds = Number($('seconds').value) || 0; persist(); });
+  $('resetBtn').addEventListener('click', () => {
+    if (!confirm('Replace all 7 rounds with the default items?')) return;
+    setup = defaultSetup();
+    persist();
+    renderSetup();
+  });
 
   $('exportBtn').addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(setup)], { type: 'application/json' });
@@ -163,12 +176,10 @@
     document.querySelectorAll('.slot').forEach((s) => s.classList.remove('bad'));
     for (let i = 0; i < ROUNDS; i++) {
       const r = setup.rounds[i];
-      const c = Number(r.ceiling), a = Number(r.answer);
+      const c = Number(r.ceiling);
       let msg = '';
       if (!r.image) msg = 'needs an image';
-      else if (r.ceiling === '' || !(c > 0)) msg = 'needs a ceiling price';
-      else if (r.answer === '' || !(a >= 0)) msg = 'needs a most likely price';
-      else if (a > c) msg = 'has a most likely price above its ceiling';
+      else if (i !== BONUS && (r.ceiling === '' || !(c > 0))) msg = 'needs a ceiling price';
       if (msg) {
         const slot = document.querySelector(`.slot[data-i="${i}"]`);
         slot.classList.add('bad');
@@ -184,7 +195,12 @@
     $('setupError').textContent = err;
     if (err) return;
     $('openLobby').disabled = true;
-    const rounds = setup.rounds.map((r) => ({ image: r.image, title: r.title.trim(), ceiling: Number(r.ceiling), answer: Number(r.answer) }));
+    // Bundled pictures are sent as full URLs so they also work on players' phones.
+    const rounds = setup.rounds.map((r, i) => ({
+      image: r.image.startsWith('/') ? location.origin + r.image : r.image,
+      title: r.title.trim(),
+      ceiling: i === BONUS ? null : Number(r.ceiling),
+    }));
     socket.emit('host:create', { rounds, currency: setup.currency }, (res) => {
       $('openLobby').disabled = false;
       if (res.error) return ($('setupError').textContent = res.error);
@@ -300,7 +316,7 @@
         try { await navigator.clipboard.writeText(joinUrl()); $('copied').textContent = 'Copied! Paste it in the meeting chat.'; }
         catch { $('copied').textContent = joinUrl(); }
       };
-      $('go').onclick = () => send('host:startRound', { seconds: setup.seconds });
+      $('go').onclick = () => send('host:startRound');
       wireKicks();
       return;
     }
@@ -313,9 +329,9 @@
           <div class="stage">
             <img class="stage-img" src="${r.image}" alt="">
             <div class="stack">
-              <div class="round-label">Round ${r.number} of ${r.total}</div>
+              <div class="round-label">${roundLabel(r)}</div>
               <div class="item-title">${r.title ? esc(r.title) : 'What does this cost?'}</div>
-              <div class="ceiling">Costs no more than <span class="price">${money(r.ceiling)}</span></div>
+              ${ceilingLine(r)}
               <div class="timer" id="timer" hidden></div>
               <div class="counter" id="guessCount"></div>
               <div id="guessNames"></div>
@@ -348,19 +364,23 @@
     if (s.phase === 'reveal') {
       const last = r.number === r.total;
       const rows = s.results.length ? s.results.map((g, i) => `
-        <li class="${g.points === 2 ? 'win1' : g.points === 1 ? 'win2' : ''}">
-          <span class="pos">${i + 1}</span>
+        <li class="${g.points === 2 ? 'win1' : g.points === 1 ? 'win2' : ''} ${g.disqualified ? 'bust' : ''}">
+          <span class="pos">${g.disqualified ? '✕' : i + 1}</span>
           <span class="who">${esc(g.name)}</span>
-          <span><b>${money(g.amount)}</b> <span class="off">off by ${money(g.diff)}</span></span>
+          <span><b>${money(g.amount)}</b>${g.disqualified ? ' <span class="dq">OVER · DISQUALIFIED</span>' : ''}</span>
           <span class="pts">${g.points ? `+${g.points}` : ''}</span>
         </li>`).join('') : '<p class="muted">Nobody guessed. Bold strategy.</p>';
+      const winner = s.results[0] && !s.results[0].disqualified ? s.results[0] : null;
       screen.innerHTML = `
         <div class="stage">
           <img class="stage-img" src="${r.image}" alt="">
           <div class="stack">
-            <div class="round-label">Round ${r.number} of ${r.total} · the real price</div>
+            <div class="round-label">${roundLabel(r)} · the guesses are in</div>
             ${r.title ? `<div class="item-title" style="margin:0">${esc(r.title)}</div>` : ''}
-            <div><span class="price answer-reveal">${money(s.answer)}</span></div>
+            ${ceilingLine(r)}
+            ${winner
+              ? `<div class="winner-line">🏆 <b>${esc(winner.name)}</b> went highest${r.ceiling === null ? '' : ' without going over'}</div><div><span class="price answer-reveal">${money(winner.amount)}</span></div>`
+              : `<div class="winner-line">${s.results.length ? '💥 Everyone went over the ceiling. Nobody scores!' : ''}</div>`}
             <ul class="results">${rows}</ul>
           </div>
         </div>
@@ -368,7 +388,7 @@
           <button id="board" class="btn primary big" type="button">${last ? 'Final results 🏆' : 'Show leaderboard'}</button>
         </div>`;
       $('board').onclick = () => send('host:showLeaderboard');
-      if (phaseChanged && s.results.some((g) => g.points)) burst(40);
+      if (phaseChanged && winner) burst(40);
       return;
     }
 
@@ -386,7 +406,7 @@
         <div class="controls">
           <button id="next" class="btn primary big" type="button">Start round ${r.number + 1}</button>
         </div>`;
-      $('next').onclick = () => send('host:startRound', { seconds: setup.seconds });
+      $('next').onclick = () => send('host:startRound');
       return;
     }
 
@@ -416,6 +436,16 @@
     }
   }
 
+  function roundLabel(r) {
+    return r.bonus ? `⭐ Bonus round (${r.number} of ${r.total})` : `Round ${r.number} of ${r.total}`;
+  }
+
+  function ceilingLine(r) {
+    return r.ceiling === null
+      ? '<div class="ceiling">No ceiling this time. <b>Highest guess wins.</b></div>'
+      : `<div class="ceiling">Ceiling <span class="price">${money(r.ceiling)}</span><div class="muted small" style="margin-top:6px">Go as high as you dare. Over the ceiling is disqualified.</div></div>`;
+  }
+
   function burst(n) {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const colors = ['#ffe14a', '#ff3b3b', '#3ee08f', '#ffffff', '#c9ced6'];
@@ -433,7 +463,7 @@
   }
 
   // Load the saved setup before anything renders.
-  db.get('setup').then((saved) => {
+  db.get(SETUP_KEY).then((saved) => {
     if (saved) setup = normalise(saved);
     if (!session && socket.connected) showSetup();
   });

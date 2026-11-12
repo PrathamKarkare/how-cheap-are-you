@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#f3e6d3"/>
+  <g fill="#e4cfb3"><rect x="0" y="0" width="800" height="600" opacity=".0"/>
+    <path d="M0 0h80v80H0zM160 0h80v80h-80zM320 0h80v80h-80zM480 0h80v80h-80zM640 0h80v80h-80zM80 80h80v80H80zM240 80h80v80h-80zM400 80h80v80h-80zM560 80h80v80h-80zM720 80h80v80h-80zM0 160h80v80H0zM160 160h80v80h-80zM320 160h80v80h-80zM480 160h80v80h-80zM640 160h80v80h-80zM80 240h80v80H80zM240 240h80v80h-80zM400 240h80v80h-80zM560 240h80v80h-80zM720 240h80v80h-80zM0 320h80v80H0zM160 320h80v80h-80zM320 320h80v80h-80zM480 320h80v80h-80zM640 320h80v80h-80zM80 400h80v80H80zM240 400h80v80h-80zM400 400h80v80h-80zM560 400h80v80h-80zM720 400h80v80h-80zM0 480h80v80H0zM160 480h80v80h-80zM320 480h80v80h-80zM480 480h80v80h-80zM640 480h80v80h-80zM80 560h80v40H80zM240 560h80v40h-80zM400 560h80v40h-80zM560 560h80v40h-80zM720 560h80v40h-80z" fill="#d94a3d" opacity=".18"/></g>
+  <ellipse cx="400" cy="330" rx="290" ry="200" fill="#000" opacity=".12"/>
+  <ellipse cx="400" cy="310" rx="280" ry="190" fill="#ffffff"/>
+  <ellipse cx="400" cy="310" rx="200" ry="132" fill="#f4f1ec"/>
+  <g fill="none" stroke="#f2c14e" stroke-width="16" stroke-linecap="round">
+    <path d="M285 300l70-60M310 330l90-80M340 350l100-90M380 360l100-90M420 360l90-80M455 345l70-60M300 270l50-40M470 320l60-50"/>
+  </g>
+  <g fill="none" stroke="#d6a93c" stroke-width="5" stroke-linecap="round" opacity=".6">
+    <path d="M290 296l64-55M345 345l94-84M425 356l84-75"/>
+  </g>
+  <path d="M290 300c20-50 80-70 130-60s90 30 100 60c-30 40-80 60-130 55s-90-25-100-55z" fill="#c8331f" opacity=".85"/>
+  <g fill="#e2513a"><circle cx="350" cy="280" r="14"/><circle cx="420" cy="265" r="12"/><circle cx="470" cy="300" r="13"/><circle cx="390" cy="320" r="11"/></g>
+  <g fill="#3f8a3a"><ellipse cx="410" cy="250" rx="22" ry="11" transform="rotate(-25 410 250)"/><ellipse cx="438" cy="244" rx="18" ry="9" transform="rotate(30 438 244)"/></g>
+  <g fill="#ff7a2f"><circle cx="365" cy="300" r="3"/><circle cx="445" cy="285" r="3"/><circle cx="405" cy="300" r="3"/><circle cx="330" cy="310" r="3"/><circle cx="480" cy="270" r="3"/></g>
+  <g transform="translate(700 120) rotate(15)"><rect x="-8" y="0" width="16" height="320" rx="8" fill="#b9bec7"/><path d="M-22 0v-70M-7 0v-70M7 0v-70M22 0v-70" stroke="#b9bec7" stroke-width="7" stroke-linecap="round"/><rect x="-26" y="-10" width="52" height="24" rx="10" fill="#b9bec7"/></g>
+</svg>

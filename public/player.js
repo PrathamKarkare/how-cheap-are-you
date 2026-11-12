@@ -101,17 +101,23 @@
     }
 
     const r = s.round;
+    const label = r.bonus ? `⭐ Bonus round` : `Round ${r.number} of ${r.total}`;
     if (s.phase === 'guessing') {
+      const rule = r.ceiling === null
+        ? '<p style="margin:0"><b>No ceiling!</b> Highest guess wins.</p>'
+        : `<p style="margin:0">Ceiling <span class="price">${money(r.ceiling)}</span></p>
+           <p class="muted small" style="margin:0">Go as high as you dare. Over the ceiling and you're disqualified.</p>`;
       const header = `
-        <div class="row spread"><span class="chip">Round ${r.number} of ${r.total}</span><span class="chip" id="timer" hidden></span></div>
+        <div class="row spread"><span class="chip">${label}</span><span class="chip" id="timer" hidden></span></div>
         <img class="round-img" src="${r.image}" alt="">
         ${r.title ? `<h2 style="margin:0">${esc(r.title)}</h2>` : ''}
-        <p class="muted" style="margin:0">It costs no more than <span class="price">${money(r.ceiling)}</span></p>`;
+        ${rule}`;
       if (s.myGuess !== null && editing === null) {
         view.innerHTML = `${header}
           <div class="center stack">
             <div class="muted">Your guess is locked in</div>
             <div class="big-number">${money(s.myGuess)}</div>
+            ${r.ceiling !== null && s.myGuess > r.ceiling ? '<p class="over-warn">That\'s over the ceiling. You will be disqualified!</p>' : ''}
             <button id="change" class="btn" type="button">Change my guess</button>
           </div>`;
         $('change').onclick = () => { editing = r.number; render(); };
@@ -119,7 +125,8 @@
         view.innerHTML = `${header}
           <div>
             <label for="guess">Your guess (${esc(s.currency)})</label>
-            <input id="guess" class="guess-input" type="number" inputmode="decimal" min="0" max="${r.ceiling}" step="0.01" placeholder="0">
+            <input id="guess" class="guess-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">
+            <p id="overWarn" class="over-warn"></p>
           </div>
           <button id="send" class="btn primary big block" type="button">Lock it in</button>
           <p id="guessError" class="error"></p>`;
@@ -134,6 +141,10 @@
         };
         $('send').onclick = send;
         $('guess').addEventListener('keydown', (e) => e.key === 'Enter' && send());
+        $('guess').addEventListener('input', () => {
+          const over = r.ceiling !== null && Number($('guess').value) > r.ceiling;
+          $('overWarn').textContent = over ? 'Careful! That is over the ceiling and will be disqualified.' : '';
+        });
         $('guess').focus();
       }
       if (s.remainingMs !== null) startTimer(Date.now() + s.remainingMs);
@@ -142,18 +153,25 @@
 
     // reveal, leaderboard, final
     const won = s.pointsThisRound;
-    const line = s.myGuess === null
-      ? 'You didn\'t guess this round.'
-      : `You guessed ${money(s.myGuess)}. Off by ${money(Math.abs(s.myGuess - s.answer))}.`;
     const final = s.phase === 'final';
+    let line, verdict;
+    if (s.myGuess === null) {
+      line = "You didn't guess this round.";
+      verdict = 'No points this time.';
+    } else if (s.disqualified) {
+      line = `You guessed ${money(s.myGuess)}, over the ${money(r.ceiling)} ceiling.`;
+      verdict = '💥 Disqualified! Too rich for this sale.';
+    } else {
+      line = `You guessed ${money(s.myGuess)}.`;
+      verdict = won === 2 ? 'Highest without going over! Big spender.' : won === 1 ? 'Second highest. Not bad.' : 'Too cheap! Someone went higher.';
+    }
     view.innerHTML = `
       <div class="center stack">
-        <span class="chip">Round ${r.number} of ${r.total}</span>
-        <div class="muted">The real price</div>
-        <div><span class="price" style="font-size:40px">${money(s.answer)}</span></div>
+        <span class="chip">${label}</span>
         <p style="margin:0">${line}</p>
         <div class="points-pop">${won ? `+${won}` : '+0'}</div>
-        <p class="muted" style="margin:0">${won === 2 ? 'Closest guess! Certified cheapskate.' : won === 1 ? 'Second closest. Respectable thrift.' : 'No points this time.'}</p>
+        <p class="muted" style="margin:0">${verdict}</p>
+        ${s.winner ? `<p class="small" style="margin:0">Round winner: <b>${esc(s.winner.name)}</b> with ${money(s.winner.amount)}</p>` : ''}
         <p style="margin:0">You're <b>#${s.rank}</b> of ${s.playerCount} with <b>${s.score}</b> points.</p>
         ${final ? '<div class="big-number" style="color:var(--yellow)">Game over!</div><p class="muted">Check the host\'s screen for the podium.</p>' : '<p class="muted">Next item coming up…</p>'}
       </div>`;

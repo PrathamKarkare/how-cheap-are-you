@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4aa3e8"/><stop offset="1" stop-color="#bfe3ff"/></linearGradient></defs>
+  <rect width="800" height="600" fill="url(#sky)"/>
+  <g fill="#fff" opacity=".9"><ellipse cx="150" cy="470" rx="140" ry="40"/><ellipse cx="240" cy="450" rx="90" ry="45"/><ellipse cx="660" cy="130" rx="120" ry="32"/><ellipse cx="590" cy="115" rx="70" ry="35"/></g>
+  <g transform="translate(400 300) rotate(-10)">
+    <path d="M-60 10l-60 120h50l90-110z" fill="#c9d3df"/>
+    <path d="M-300 -10c0-30 40-45 120-45h300c70 0 120 20 150 45-30 25-80 40-150 40h-300c-80 0-120-10-120-40z" fill="#fdfdfd"/>
+    <path d="M-300 -10c0 30 40 40 120 40h300c70 0 120-15 150-40z" fill="#e3e8ee"/>
+    <path d="M220 -32c25 6 45 14 50 22l-45 4c-10-10-10-20-5-26z" fill="#1d3557"/>
+    <path d="M-300 -10l-40-90h50l70 60z" fill="#e3e8ee"/>
+    <path d="M-340 -100h50l10 10h-55z" fill="#d4a017"/>
+    <path d="M-60 -20l-70-90h40l110 85z" fill="#dfe5ec"/>
+    <rect x="-240" y="-45" width="80" height="34" rx="17" fill="#c9d3df"/>
+    <g fill="#1d3557"><rect x="-120" y="-30" width="22" height="16" rx="8"/><rect x="-80" y="-30" width="22" height="16" rx="8"/><rect x="-40" y="-30" width="22" height="16" rx="8"/><rect x="0" y="-30" width="22" height="16" rx="8"/><rect x="40" y="-30" width="22" height="16" rx="8"/><rect x="80" y="-30" width="22" height="16" rx="8"/><rect x="120" y="-30" width="22" height="16" rx="8"/></g>
+    <path d="M-280 5h480" stroke="#d4a017" stroke-width="6"/>
+  </g>
+</svg>

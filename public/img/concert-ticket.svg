@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b1d6e"/><stop offset="1" stop-color="#14092b"/></linearGradient>
+  <linearGradient id="t" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff5fa2"/><stop offset="1" stop-color="#ffb347"/></linearGradient></defs>
+  <rect width="800" height="600" fill="url(#g)"/>
+  <g opacity=".35" fill="#fff"><path d="M120 0L60 600h40L150 0zM680 0l60 600h-40L650 0z"/></g>
+  <g fill="#fff"><circle cx="90" cy="80" r="3"/><circle cx="720" cy="60" r="2"/><circle cx="640" cy="520" r="3"/><circle cx="160" cy="540" r="2"/><circle cx="400" cy="60" r="2"/></g>
+  <g transform="rotate(-8 400 300)">
+    <path d="M150 190h500v80a30 30 0 0 0 0 60v80H150v-80a30 30 0 0 0 0-60z" fill="url(#t)"/>
+    <path d="M520 195v210" stroke="#2a1450" stroke-width="4" stroke-dasharray="12 10" opacity=".6"/>
+    <text x="180" y="250" font-family="Impact, Anton, sans-serif" font-size="30" fill="#2a1450" letter-spacing="3">ADMIT ONE</text>
+    <text x="180" y="315" font-family="Impact, Anton, sans-serif" font-size="58" fill="#fff">BOY BAND</text>
+    <text x="180" y="370" font-family="Impact, Anton, sans-serif" font-size="34" fill="#2a1450">REUNION TOUR</text>
+    <g transform="translate(585 300)" fill="#2a1450"><circle r="34" fill="none" stroke="#2a1450" stroke-width="5"/><path d="M-8-18v28a10 10 0 1 1-6-9V-22l26-6v24a10 10 0 1 1-6-9v-14z"/></g>
+  </g>
+  <g fill="#ffe14a"><path d="M110 420l8 18 20 2-15 13 5 20-18-10-18 10 5-20-15-13 20-2z"/><path d="M690 140l6 13 14 2-10 9 3 14-13-7-13 7 3-14-10-9 14-2z"/></g>
+</svg>

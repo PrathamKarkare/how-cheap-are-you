@@ -8,7 +8,9 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 const PORT = process.env.PORT || 3000;
-const ROUNDS_PER_GAME = 7;
+const ROUNDS_PER_GAME = 7; // 6 normal rounds + 1 bonus round
+const ROUND_SECONDS = 30;
+const MAX_GUESS = 1e12; // keeps the bonus round sane
 const ROOM_IDLE_MS = 6 * 60 * 60 * 1000; // forget rooms after 6 idle hours
 
 const app = express();
@@ -42,33 +44,40 @@ function toMoney(value) {
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
 }
 
+const isBonus = (index) => index === ROUNDS_PER_GAME - 1;
+
 function validateRounds(rounds) {
   if (!Array.isArray(rounds) || rounds.length !== ROUNDS_PER_GAME) {
     return `The game needs exactly ${ROUNDS_PER_GAME} rounds.`;
   }
   for (let i = 0; i < rounds.length; i++) {
     const r = rounds[i];
-    const ceiling = toMoney(r.ceiling);
-    const answer = toMoney(r.answer);
     if (!r.image) return `Round ${i + 1} has no image.`;
+    if (isBonus(i)) continue; // the bonus round has no ceiling
+    const ceiling = toMoney(r.ceiling);
     if (ceiling === null || ceiling <= 0) return `Round ${i + 1} needs a ceiling price.`;
-    if (answer === null) return `Round ${i + 1} needs a most likely price.`;
-    if (answer > ceiling) return `Round ${i + 1}: the most likely price is above the ceiling.`;
   }
   return null;
 }
 
 /**
- * Rank the guesses for a round. Closest to the answer wins; on a tie, the earlier guess wins.
- * Returns every guess with its distance and the points it earned (2, 1 or 0).
+ * Rank the guesses for a round. Price-is-Right style: the HIGHEST guess that is not over the
+ * ceiling wins 2 points, the second highest wins 1. Anything over the ceiling is disqualified.
+ * With no ceiling (bonus round) the highest guess simply wins. Ties go to whoever guessed first.
  */
-function scoreRound(guesses, answer) {
-  const ranked = Object.entries(guesses)
-    .map(([playerId, g]) => ({ playerId, amount: g.amount, at: g.at, diff: Math.abs(g.amount - answer) }))
-    .sort((a, b) => a.diff - b.diff || a.at - b.at);
+function scoreRound(guesses, ceiling) {
+  const all = Object.entries(guesses).map(([playerId, g]) => ({
+    playerId,
+    amount: g.amount,
+    at: g.at,
+    disqualified: ceiling !== null && g.amount > ceiling,
+    points: 0,
+  }));
+  const valid = all.filter((g) => !g.disqualified).sort((a, b) => b.amount - a.amount || a.at - b.at);
+  const out = all.filter((g) => g.disqualified).sort((a, b) => a.amount - b.amount || a.at - b.at);
   const POINTS = [2, 1];
-  ranked.forEach((g, i) => (g.points = POINTS[i] || 0));
-  return ranked;
+  valid.forEach((g, i) => (g.points = POINTS[i] || 0));
+  return [...valid, ...out];
 }
 
 function leaderboard(room) {
@@ -80,10 +89,17 @@ function leaderboard(room) {
 function publicRound(room) {
   const r = room.rounds[room.roundIndex];
   if (!r) return null;
-  return { number: room.roundIndex + 1, total: room.rounds.length, title: r.title || '', image: r.image, ceiling: r.ceiling };
+  return {
+    number: room.roundIndex + 1,
+    total: room.rounds.length,
+    bonus: isBonus(room.roundIndex),
+    title: r.title || '',
+    image: r.image,
+    ceiling: r.ceiling,
+  };
 }
 
-/** The state the host screen renders. Includes the answer only once it is revealed. */
+/** The state the host screen renders. Includes the guesses only once they are revealed. */
 function hostState(room) {
   const round = publicRound(room);
   const state = {
@@ -96,7 +112,6 @@ function hostState(room) {
     remainingMs: room.deadline ? Math.max(room.deadline - Date.now(), 0) : null,
   };
   if (room.phase === 'reveal' || room.phase === 'leaderboard' || room.phase === 'final') {
-    state.answer = room.rounds[room.roundIndex].answer;
     state.results = room.lastResults.map((g) => ({ ...g, name: room.players[g.playerId]?.name || '???' }));
   }
   return state;
@@ -116,9 +131,12 @@ function playerState(room, playerId) {
     remainingMs: room.deadline ? Math.max(room.deadline - Date.now(), 0) : null,
   };
   if (room.phase !== 'lobby' && room.phase !== 'guessing') {
-    state.answer = room.rounds[room.roundIndex].answer;
     const mine = room.lastResults.find((g) => g.playerId === playerId);
     state.pointsThisRound = mine ? mine.points : 0;
+    state.disqualified = !!mine?.disqualified;
+    state.winner = room.lastResults[0] && !room.lastResults[0].disqualified
+      ? { name: room.players[room.lastResults[0].playerId]?.name || '???', amount: room.lastResults[0].amount }
+      : null;
     const board = leaderboard(room);
     state.rank = board.findIndex((p) => p.id === playerId) + 1;
     state.playerCount = board.length;
@@ -139,8 +157,7 @@ function lockRound(room) {
   clearTimeout(room.timer);
   room.timer = null;
   room.deadline = null;
-  const answer = room.rounds[room.roundIndex].answer;
-  room.lastResults = scoreRound(room.guesses, answer);
+  room.lastResults = scoreRound(room.guesses, room.rounds[room.roundIndex].ceiling);
   for (const g of room.lastResults) room.players[g.playerId].score += g.points;
   room.phase = 'reveal';
   broadcast(room);
@@ -162,11 +179,10 @@ io.on('connection', (socket) => {
       hostKey: token(),
       hostSocketId: socket.id,
       currency: String(currency || '$').slice(0, 3),
-      rounds: rounds.map((r) => ({
+      rounds: rounds.map((r, i) => ({
         image: String(r.image),
-        title: String(r.title || '').slice(0, 80),
-        ceiling: toMoney(r.ceiling),
-        answer: toMoney(r.answer),
+        title: String(r.title || '').slice(0, 120),
+        ceiling: isBonus(i) ? null : toMoney(r.ceiling),
       })),
       players: {},
       phase: 'lobby',
@@ -192,7 +208,7 @@ io.on('connection', (socket) => {
     broadcast(room);
   });
 
-  socket.on('host:startRound', ({ code, hostKey, seconds } = {}) => {
+  socket.on('host:startRound', ({ code, hostKey } = {}) => {
     const room = hostRoom(socket, code, hostKey);
     if (!room) return;
     if (room.phase === 'guessing' || room.phase === 'final') return;
@@ -201,9 +217,8 @@ io.on('connection', (socket) => {
     room.phase = 'guessing';
     room.guesses = {};
     room.lastResults = [];
-    const secs = Math.min(Math.max(Number(seconds) || 0, 0), 600);
-    room.deadline = secs ? Date.now() + secs * 1000 : null;
-    if (secs) room.timer = setTimeout(() => lockRound(room), secs * 1000 + 300);
+    room.deadline = Date.now() + ROUND_SECONDS * 1000;
+    room.timer = setTimeout(() => lockRound(room), ROUND_SECONDS * 1000 + 300);
     broadcast(room);
   });
 
@@ -269,9 +284,9 @@ io.on('connection', (socket) => {
     if (!room || !room.players[who.playerId]) return reply?.({ error: 'You are not in a game.' });
     if (room.phase !== 'guessing') return reply?.({ error: 'Guessing is closed.' });
     const value = toMoney(amount);
-    const ceiling = room.rounds[room.roundIndex].ceiling;
     if (value === null) return reply?.({ error: 'Type a price.' });
-    if (value > ceiling) return reply?.({ error: `Too rich! The ceiling is ${room.currency}${ceiling}.` });
+    if (value > MAX_GUESS) return reply?.({ error: 'Nice try. Keep it under a trillion.' });
+    // Guesses over the ceiling are allowed on purpose: they are disqualified when the round is scored.
     // Changing your guess is allowed, but it moves you to the back of the tie-break queue.
     room.guesses[who.playerId] = { amount: value, at: Date.now() };
     reply?.({ ok: true });
@@ -304,4 +319,4 @@ if (require.main === module) {
   server.listen(PORT, () => console.log(`How Cheap Are You? is running on http://localhost:${PORT}`));
 }
 
-module.exports = { server, scoreRound, validateRounds, ROUNDS_PER_GAME };
+module.exports = { server, scoreRound, validateRounds, ROUNDS_PER_GAME, ROUND_SECONDS };

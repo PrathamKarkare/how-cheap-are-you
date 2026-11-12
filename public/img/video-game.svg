@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a3d"/><stop offset="1" stop-color="#d1345b"/></linearGradient>
+  <linearGradient id="cv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b2d42"/><stop offset="1" stop-color="#0d0e17"/></linearGradient></defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <g opacity=".18" fill="#000"><rect x="40" y="380" width="60" height="220"/><rect x="110" y="320" width="80" height="280"/><rect x="200" y="420" width="50" height="180"/><rect x="560" y="340" width="70" height="260"/><rect x="640" y="400" width="60" height="200"/><rect x="710" y="300" width="70" height="300"/></g>
+  <g transform="rotate(-6 330 300)">
+    <rect x="210" y="80" width="250" height="340" rx="10" fill="#1565c0"/>
+    <rect x="222" y="92" width="226" height="316" rx="4" fill="url(#cv)"/>
+    <rect x="222" y="92" width="226" height="36" fill="#1565c0"/>
+    <path d="M222 408l60-120 40 50 50-110 76 180z" fill="#ff8a3d" opacity=".75"/>
+    <g fill="#ffd166"><rect x="300" y="190" width="10" height="70"/><rect x="330" y="160" width="14" height="100"/><rect x="360" y="200" width="10" height="60"/></g>
+    <text x="335" y="365" text-anchor="middle" font-family="Impact, Anton, sans-serif" font-size="58" fill="#fff">GTA V</text>
+  </g>
+  <g transform="translate(560 400) rotate(10)">
+    <path d="M-120-40c30-20 210-20 240 0 30 20 40 110 10 125-25 12-50-15-70-40h-120c-20 25-45 52-70 40-30-15-20-105 10-125z" fill="#22223b"/>
+    <path d="M-80-5h20v-20h20v20h20v20h-20v20h-20v-20h-20z" fill="#9a8c98"/>
+    <g fill="#ef476f"><circle cx="70" cy="-10" r="11"/></g><g fill="#06d6a0"><circle cx="95" cy="12" r="11"/></g><g fill="#118ab2"><circle cx="45" cy="12" r="11"/></g><g fill="#ffd166"><circle cx="70" cy="34" r="11"/></g>
+  </g>
+</svg>
