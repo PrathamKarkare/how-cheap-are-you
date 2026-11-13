@@ -44,6 +44,7 @@
       if (res.error) return showJoin(res.error);
       session = { code: res.code, playerId: res.playerId };
       save(session);
+      window.track?.('player-joined');
     });
   }
 

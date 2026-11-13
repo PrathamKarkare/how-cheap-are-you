@@ -205,6 +205,7 @@
       $('openLobby').disabled = false;
       if (res.error) return ($('setupError').textContent = res.error);
       session = { code: res.code, hostKey: res.hostKey };
+      window.track?.('game-started');
       try { sessionStorage.setItem(SESSION, JSON.stringify(session)); } catch {}
     });
   });
@@ -388,6 +389,7 @@
           <button id="board" class="btn primary big" type="button">${last ? 'Final results 🏆' : 'Show leaderboard'}</button>
         </div>`;
       $('board').onclick = () => send('host:showLeaderboard');
+      if (phaseChanged) window.track?.('round-played', `${s.players.length} players`);
       if (phaseChanged && winner) burst(40);
       return;
     }
@@ -432,7 +434,10 @@
         try { sessionStorage.removeItem(SESSION); } catch {}
         showSetup();
       };
-      if (phaseChanged) burst(160);
+      if (phaseChanged) {
+        burst(160);
+        window.track?.('game-finished', `${s.players.length} players`);
+      }
     }
   }
 

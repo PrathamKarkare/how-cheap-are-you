@@ -26,6 +26,16 @@ There are 6 normal rounds and 1 bonus round. Each round lasts 30 seconds.
 If a player's browser refreshes, they rejoin automatically with the same name and score.
 If the host's tab refreshes, the game resumes too.
 
+## Analytics (optional)
+
+The game can report visits and game events to [GoatCounter](https://www.goatcounter.com), a free, privacy-friendly analytics service with no cookies.
+
+1. Sign up at goatcounter.com and pick a code, for example `how-cheap-are-you`.
+2. In Render, open the service, go to **Environment**, and add `GOATCOUNTER_CODE` with that code.
+3. Your dashboard at `https://<code>.goatcounter.com` shows page visits plus these events: `game-started`, `player-joined`, `round-played` and `game-finished` (with the number of players).
+
+Without `GOATCOUNTER_CODE`, nothing is tracked.
+
 ## Run it locally
 
 ```bash

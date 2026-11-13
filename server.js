@@ -21,6 +21,35 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/host', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'host.html')));
 app.get('/healthz', (_req, res) => res.send('ok'));
 
+// Optional, privacy-friendly analytics with GoatCounter (no cookies).
+// Set GOATCOUNTER_CODE to your site code (the "mygame" in mygame.goatcounter.com) to turn it on.
+const GOATCOUNTER_CODE = /^[a-z0-9-]{1,50}$/i.test(process.env.GOATCOUNTER_CODE || '') ? process.env.GOATCOUNTER_CODE : '';
+app.get('/analytics.js', (_req, res) => {
+  res.type('application/javascript').set('Cache-Control', 'no-cache');
+  if (!GOATCOUNTER_CODE) return res.send('window.track = function () {};');
+  res.send(`(function () {
+  var queue = [];
+  // track('game-started', '5 players') records a custom event in GoatCounter.
+  window.track = function (name, title) {
+    var ev = { path: name, title: title || name, event: true };
+    if (window.goatcounter && window.goatcounter.count) window.goatcounter.count(ev);
+    else queue.push(ev);
+  };
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://gc.zgo.at/count.js';
+  s.setAttribute('data-goatcounter', 'https://${GOATCOUNTER_CODE}.goatcounter.com/count');
+  s.onload = function () {
+    var flush = function () {
+      if (!window.goatcounter || !window.goatcounter.count) return setTimeout(flush, 200);
+      queue.splice(0).forEach(function (ev) { window.goatcounter.count(ev); });
+    };
+    flush();
+  };
+  document.head.appendChild(s);
+})();`);
+});
+
 /** @type {Map<string, any>} */
 const rooms = new Map();
 

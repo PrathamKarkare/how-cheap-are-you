@@ -6,3 +6,6 @@ services:
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /healthz
+    envVars:
+      - key: GOATCOUNTER_CODE
+        sync: false # optional: your GoatCounter site code, for analytics
